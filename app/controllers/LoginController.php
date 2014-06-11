@@ -42,7 +42,7 @@ class LoginController extends USVN_Controller
 		Zend_Session::destroy();
 		$this->_redirect('/');
 	}
-
+	
 	protected function _doLogin()
 	{
 		// Get a reference to the Singleton instance of Zend_Auth
@@ -59,6 +59,7 @@ class LoginController extends USVN_Controller
 		{
 			$authAdapterMethod = strtolower($config->authAdapterMethod);
 		}
+		
 		$authAdapterClass = 'USVN_Auth_Adapter_' . ucfirst($authAdapterMethod);
 		if (!class_exists($authAdapterClass))
 		{
@@ -75,7 +76,30 @@ class LoginController extends USVN_Controller
 		
 		// Attempt authentication, saving the result
 		$result = $auth->authenticate($authAdapter);
+		
+		// Use database as fallback login, if the configured login method fails
+		if (!$result->isValid() && $authAdapterMethod !== 'database')
+		{
+			$authAdapterMethod = 'database';
 
+			$authAdapterClass = 'USVN_Auth_Adapter_' . ucfirst($authAdapterMethod);
+			if (!class_exists($authAdapterClass))
+			{
+				throw new USVN_Exception(T_('The authentication adapter method database.'));
+			}
+			// Retrieve auth-options, if any, from the config file
+			$authOptions = null;
+			if ($config->$authAdapterMethod && $config->$authAdapterMethod->options)
+			{
+				$authOptions = $config->$authAdapterMethod->options->toArray();
+			}
+			// Set up the authentication adapter
+			$authAdapter = new $authAdapterClass($_POST['login'], $_POST['password'], $authOptions);
+			
+			// Attempt authentication, saving the result
+			$result = $auth->authenticate($authAdapter);
+		}
+		
 		if (!$result->isValid())
 		{
 			$this->view->login = $_POST['login'];
