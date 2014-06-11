@@ -92,7 +92,14 @@ class USVN_User
 		$this->user->save();
 		if ($this->createGroup) {
 			$table = new USVN_Db_Table_Groups();
-			$group = $table->createRow(array("groups_name" => $this->user->login));
+			
+			if (isset($this->user->users_firstname) && isset($this->user->users_lastname) &&
+			    $this->user->users_firstname != '' && $this->user->users_lastname != '')
+				$newgroupname = $this->user->users_firstname + $this->user->users_lastname;
+		    }else {
+		    	$newgroupname = $this->user->login;
+		    }
+			$group = $table->createRow(array("groups_name" => $newgroupname));
 			try {
 				$group->save();
 				$this->groups[] = $group->id;
