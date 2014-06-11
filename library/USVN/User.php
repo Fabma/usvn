@@ -93,11 +93,10 @@ class USVN_User
 		if ($this->createGroup) {
 			$table = new USVN_Db_Table_Groups();
 			
+			$newgroupname = $this->user->login;
 			if (isset($this->user->users_firstname) && isset($this->user->users_lastname) &&
 			    $this->user->users_firstname != '' && $this->user->users_lastname != '') {
 				$newgroupname = $this->user->users_firstname + $this->user->users_lastname;
-		    }else {
-		    	$newgroupname = $this->user->login;
 		    }
 			$group = $table->createRow(array("groups_name" => $newgroupname));
 			try {
