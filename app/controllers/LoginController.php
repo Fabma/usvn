@@ -80,12 +80,12 @@ class LoginController extends USVN_Controller
 			$authAdapterMethod = strtolower($config->authAdapterMethod);
 		}
 		
-		$result = _doLoginHelper($authAdapterMethod, $config);
+		$result = $this->_doLoginHelper($authAdapterMethod, $config);
 		if (!$result->isValid() && $authAdapterMethod !== 'database')
 		{
 			// Use database as fallback login, if the configured login method fails
 			$authAdapterMethod = 'database';
-			$result = _doLoginHelper($authAdapterMethod, $config);
+			$result = $this->_doLoginHelper($authAdapterMethod, $config);
 		}
 		
 		if (!$result->isValid())
