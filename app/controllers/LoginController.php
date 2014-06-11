@@ -43,7 +43,7 @@ class LoginController extends USVN_Controller
 		$this->_redirect('/');
 	}
 	
-	protected function _doLoginHelper($authAdapterMethod, $config) 
+	protected function _doLoginHelper($authAdapterMethod, $config, $auth) 
 	{
 		$authAdapterClass = 'USVN_Auth_Adapter_' . ucfirst($authAdapterMethod);
 		if (!class_exists($authAdapterClass))
@@ -80,12 +80,12 @@ class LoginController extends USVN_Controller
 			$authAdapterMethod = strtolower($config->authAdapterMethod);
 		}
 		
-		$result = $this->_doLoginHelper($authAdapterMethod, $config);
+		$result = $this->_doLoginHelper($authAdapterMethod, $config, $auth);
 		if (!$result->isValid() && $authAdapterMethod !== 'database')
 		{
 			// Use database as fallback login, if the configured login method fails
 			$authAdapterMethod = 'database';
-			$result = $this->_doLoginHelper($authAdapterMethod, $config);
+			$result = $this->_doLoginHelper($authAdapterMethod, $config, $auth);
 		}
 		
 		if (!$result->isValid())
