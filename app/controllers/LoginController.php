@@ -42,6 +42,26 @@ class LoginController extends USVN_Controller
 		Zend_Session::destroy();
 		$this->_redirect('/');
 	}
+	
+	protected function _doLoginHelper($authAdapterMethod, $config) 
+	{
+		$authAdapterClass = 'USVN_Auth_Adapter_' . ucfirst($authAdapterMethod);
+		if (!class_exists($authAdapterClass))
+		{
+			throw new USVN_Exception(T_('The authentication adapter method set in the config file is not valid.'));
+		}
+		// Retrieve auth-options, if any, from the config file
+		$authOptions = null;
+		if ($config->$authAdapterMethod && $config->$authAdapterMethod->options)
+		{
+			$authOptions = $config->$authAdapterMethod->options->toArray();
+		}
+		// Set up the authentication adapter
+		$authAdapter = new $authAdapterClass($_POST['login'], $_POST['password'], $authOptions);
+		
+		// Attempt authentication, saving the result
+		return $auth->authenticate($authAdapter);
+	}
 
 	protected function _doLogin()
 	{
@@ -59,23 +79,15 @@ class LoginController extends USVN_Controller
 		{
 			$authAdapterMethod = strtolower($config->authAdapterMethod);
 		}
-		$authAdapterClass = 'USVN_Auth_Adapter_' . ucfirst($authAdapterMethod);
-		if (!class_exists($authAdapterClass))
-		{
-			throw new USVN_Exception(T_('The authentication adapter method set in the config file is not valid.'));
-		}
-		// Retrieve auth-options, if any, from the config file
-		$authOptions = null;
-		if ($config->$authAdapterMethod && $config->$authAdapterMethod->options)
-		{
-			$authOptions = $config->$authAdapterMethod->options->toArray();
-		}
-		// Set up the authentication adapter
-		$authAdapter = new $authAdapterClass($_POST['login'], $_POST['password'], $authOptions);
 		
-		// Attempt authentication, saving the result
-		$result = $auth->authenticate($authAdapter);
-
+		$result = _doLoginHelper($authAdapterMethod, $config);
+		if (!$result->isValid() && $authAdapterMethod !== 'database')
+		{
+			// Use database as fallback login, if the configured login method fails
+			$authAdapterMethod = 'database';
+			$result = _doLoginHelper($authAdapterMethod, $config);
+		}
+		
 		if (!$result->isValid())
 		{
 			$this->view->login = $_POST['login'];
