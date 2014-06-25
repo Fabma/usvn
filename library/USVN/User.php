@@ -97,7 +97,7 @@ class USVN_User
 			if (isset($this->user->users_firstname) && isset($this->user->users_lastname) &&
 			    trim($this->user->users_firstname) !== '' && trim($this->user->users_lastname) !== '') {
 				$newgroupname = $this->user->users_firstname . $this->user->users_lastname;
-				$newgroupname = iconv('UTF-8', 'ASCII//TRANSLIT', $newgroupname); // convert e.g. german umlauts and esszett to ascii equivalent
+				$newgroupname = iconv("ISO-8859-1","ASCII//TRANSLIT", $newgroupname); // convert e.g. german umlauts and esszett to ascii equivalent
 		    }
 		    $group = $table->createRow(array("groups_name" => $newgroupname));
 			try {
